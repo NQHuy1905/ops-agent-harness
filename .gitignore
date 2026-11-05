@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+*.db
+*.db-*
+*.log
+.env
+
+# local tooling / process notes
+.claude/
+plans/

@@ -1,0 +1,8 @@
+[
+  {"type": "tool", "name": "get_service_status", "args": {"service_name": "{service}"}},
+  {"type": "tool", "name": "get_service_status", "args": {"service_name": "{service}"}},
+  {"type": "tool", "name": "get_service_status", "args": {"service_name": "{service}"}},
+  {"type": "tool", "name": "get_service_status", "args": {"service_name": "{service}"}},
+  {"type": "tool", "name": "get_service_status", "args": {"service_name": "{service}"}},
+  {"type": "final", "text": "[Scripted demo output] Loop demo finished. Last tool result: {last_tool_result}"}
+]

@@ -1,0 +1,9 @@
+[
+  {"type": "tool", "name": "get_service_status", "args": {"service_name": "{service}"}},
+  {"type": "tool", "name": "search_knowledge_base", "args": {"query": "severity matrix"}},
+  {"type": "tool", "name": "create_incident", "args": {
+    "title": "{service} degraded",
+    "description": "Scripted demo: {service} reported degraded status; opening an incident per the severity matrix.",
+    "severity": "high"}},
+  {"type": "final", "text": "[Scripted demo output] Incident flow for {service} finished. Last tool result: {last_tool_result}"}
+]

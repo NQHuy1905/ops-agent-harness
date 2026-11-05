@@ -1,0 +1,1071 @@
+{
+  "info": {
+    "name": "Ops Agent Harness",
+    "description": "Requests for the ops agent harness API. Works offline with LLM_PROVIDER=scripted (keyword-routed demo scenarios) or live with LLM_PROVIDER=deepseek. Run folders in order: each POST /runs stores {{run_id}} and {{tool_call_id}} in collection variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "run_id",
+      "value": ""
+    },
+    {
+      "key": "tool_call_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Health & tools",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List tools",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tools",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tools"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. Happy path - status check",
+      "item": [
+        {
+          "name": "Start run: check payments-api",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"objective\": \"Check the status of payments-api\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set(\"run_id\", body.id);",
+                  "if (body.pending_approval) { pm.collectionVariables.set(\"tool_call_id\", body.pending_approval.tool_call_id); }",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"run status completed\", () => pm.expect(pm.response.json().status).to.eql(\"completed\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get run",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs/{{run_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs",
+                "{{run_id}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"run status completed\", () => pm.expect(pm.response.json().status).to.eql(\"completed\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs/{{run_id}}/history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs",
+                "{{run_id}}",
+                "history"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trace",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs/{{run_id}}/trace",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs",
+                "{{run_id}}",
+                "trace"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Incident - approve",
+      "item": [
+        {
+          "name": "Start run: incident (pauses)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs"
+              ]
+            },
+            "description": "Run pauses before create_incident; response has pending_approval.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"objective\": \"checkout-web is down, create an incident\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set(\"run_id\", body.id);",
+                  "if (body.pending_approval) { pm.collectionVariables.set(\"tool_call_id\", body.pending_approval.tool_call_id); }",
+                  "pm.test(\"HTTP 202\", () => pm.response.to.have.status(202));",
+                  "pm.test(\"run status awaiting_approval\", () => pm.expect(pm.response.json().status).to.eql(\"awaiting_approval\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve (with edit)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs/{{run_id}}/approval",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs",
+                "{{run_id}}",
+                "approval"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tool_call_id\": \"{{tool_call_id}}\",\n  \"decision\": \"approve\",\n  \"edited_args\": {\n    \"title\": \"checkout-web outage\",\n    \"description\": \"Checkout returns 5xx for all users since 12:00 UTC\",\n    \"severity\": \"critical\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"run status completed\", () => pm.expect(pm.response.json().status).to.eql(\"completed\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Approve again -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs/{{run_id}}/approval",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs",
+                "{{run_id}}",
+                "approval"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tool_call_id\": \"{{tool_call_id}}\",\n  \"decision\": \"approve\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Incidents for run",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/incidents?run_id={{run_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "incidents"
+              ],
+              "query": [
+                {
+                  "key": "run_id",
+                  "value": "{{run_id}}"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"exactly one incident\", () => pm.expect(pm.response.json().length).to.eql(1));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Incident - reject",
+      "item": [
+        {
+          "name": "Start run: incident (pauses)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"objective\": \"payments-api is slow, create an incident\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set(\"run_id\", body.id);",
+                  "if (body.pending_approval) { pm.collectionVariables.set(\"tool_call_id\", body.pending_approval.tool_call_id); }",
+                  "pm.test(\"HTTP 202\", () => pm.response.to.have.status(202));",
+                  "pm.test(\"run status awaiting_approval\", () => pm.expect(pm.response.json().status).to.eql(\"awaiting_approval\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Wrong tool_call_id -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs/{{run_id}}/approval",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs",
+                "{{run_id}}",
+                "approval"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tool_call_id\": \"not-the-pending-call\",\n  \"decision\": \"approve\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invalid edited args -> 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs/{{run_id}}/approval",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs",
+                "{{run_id}}",
+                "approval"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tool_call_id\": \"{{tool_call_id}}\",\n  \"decision\": \"approve\",\n  \"edited_args\": {\n    \"title\": \"x\",\n    \"description\": \"y\",\n    \"severity\": \"urgent\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs/{{run_id}}/approval",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs",
+                "{{run_id}}",
+                "approval"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tool_call_id\": \"{{tool_call_id}}\",\n  \"decision\": \"reject\",\n  \"reason\": \"Known issue, already tracked\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"run status completed\", () => pm.expect(pm.response.json().status).to.eql(\"completed\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "No incident created",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/incidents?run_id={{run_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "incidents"
+              ],
+              "query": [
+                {
+                  "key": "run_id",
+                  "value": "{{run_id}}"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"no incident\", () => pm.expect(pm.response.json().length).to.eql(0));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Failure handling",
+      "item": [
+        {
+          "name": "Transient errors retried (flaky-service)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"objective\": \"Check the status of flaky-service\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set(\"run_id\", body.id);",
+                  "if (body.pending_approval) { pm.collectionVariables.set(\"tool_call_id\", body.pending_approval.tool_call_id); }",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"run status completed\", () => pm.expect(pm.response.json().status).to.eql(\"completed\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Timeout (slow-service)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs"
+              ]
+            },
+            "description": "Tool times out on every attempt; LLM receives a tool_timeout observation. Takes ~3x TOOL_TIMEOUT_S.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"objective\": \"Check the status of slow-service\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set(\"run_id\", body.id);",
+                  "if (body.pending_approval) { pm.collectionVariables.set(\"tool_call_id\", body.pending_approval.tool_call_id); }",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"run status completed\", () => pm.expect(pm.response.json().status).to.eql(\"completed\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Bad tool output (broken-service)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"objective\": \"Check the status of broken-service\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set(\"run_id\", body.id);",
+                  "if (body.pending_approval) { pm.collectionVariables.set(\"tool_call_id\", body.pending_approval.tool_call_id); }",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"run status completed\", () => pm.expect(pm.response.json().status).to.eql(\"completed\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "History (see tool errors)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs/{{run_id}}/history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs",
+                "{{run_id}}",
+                "history"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Execution limits",
+      "item": [
+        {
+          "name": "Step limit (max_steps=1)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"objective\": \"Check the status of payments-api\",\n  \"max_steps\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set(\"run_id\", body.id);",
+                  "if (body.pending_approval) { pm.collectionVariables.set(\"tool_call_id\", body.pending_approval.tool_call_id); }",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"run status limit_exceeded\", () => pm.expect(pm.response.json().status).to.eql(\"limit_exceeded\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Loop detection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"objective\": \"loop on auth-service status\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set(\"run_id\", body.id);",
+                  "if (body.pending_approval) { pm.collectionVariables.set(\"tool_call_id\", body.pending_approval.tool_call_id); }",
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"run status limit_exceeded\", () => pm.expect(pm.response.json().status).to.eql(\"limit_exceeded\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trace (error spans)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs/{{run_id}}/trace",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs",
+                "{{run_id}}",
+                "trace"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Inspect",
+      "item": [
+        {
+          "name": "List runs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs?limit=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "All incidents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/incidents",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "incidents"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown run -> 404",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/runs/does-not-exist",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "runs",
+                "does-not-exist"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

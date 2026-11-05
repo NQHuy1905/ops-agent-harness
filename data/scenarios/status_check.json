@@ -1,0 +1,4 @@
+[
+  {"type": "tool", "name": "get_service_status", "args": {"service_name": "{service}"}},
+  {"type": "final", "text": "[Scripted demo output] Status check for {service}. Tool result: {last_tool_result}"}
+]

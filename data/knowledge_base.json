@@ -1,0 +1,215 @@
+[
+  {
+    "id": "KB-001",
+    "title": "Runbook: payments-api high latency",
+    "service": "payments-api",
+    "tags": [
+      "payments",
+      "latency",
+      "slow",
+      "p95",
+      "timeout"
+    ],
+    "content": "Symptoms: p95 latency on payments-api above 800 ms or rising gateway timeouts. First check the dashboard for connection pool saturation and the upstream card processor status. If the pool is exhausted, scale payments-api replicas by 2 and recycle the pool. Check orders-db replication lag because slow reads cascade into payment authorization. If a deploy happened in the last 30 minutes, roll back using the deploy rollback runbook. Escalate to the payments on-call if latency stays above 800 ms for 15 minutes."
+  },
+  {
+    "id": "KB-002",
+    "title": "Runbook: auth-service login failures",
+    "service": "auth-service",
+    "tags": [
+      "auth",
+      "login",
+      "401",
+      "token",
+      "sso"
+    ],
+    "content": "Symptoms: spike in 401/500 responses on /login or token refresh. Verify the identity provider (SSO) status page and check that signing keys have not expired. Look for a recent config change to token TTL or redis session store. If the session store is unreachable, fail over to the replica and restart auth-service pods one at a time. Users who are locked out can be unblocked by clearing the rate-limit key. Escalate to the identity on-call when failure rate exceeds 5 percent."
+  },
+  {
+    "id": "KB-003",
+    "title": "Runbook: checkout-web 5xx errors",
+    "service": "checkout-web",
+    "tags": [
+      "checkout",
+      "5xx",
+      "errors",
+      "outage",
+      "web"
+    ],
+    "content": "Symptoms: checkout-web returns 502/503/504 or the cart page fails to render. Check the load balancer health checks and recent deploys first. Confirm dependencies: payments-api, inventory-api and auth-service must be healthy. If one pod is crash looping, inspect logs for out-of-memory kills and restart it. For a bad release, roll back immediately and post a status page update. A confirmed checkout outage is a critical severity incident."
+  },
+  {
+    "id": "KB-004",
+    "title": "Runbook: orders-db failover and replication lag",
+    "service": "orders-db",
+    "tags": [
+      "database",
+      "failover",
+      "replication",
+      "lag",
+      "postgres",
+      "orders"
+    ],
+    "content": "Symptoms: replication lag above 30 seconds, read replicas stale, or primary unreachable. Check long running transactions and disk IO on the primary. If lag keeps growing, pause batch jobs and heavy reports. To fail over, promote the most up-to-date replica, repoint the connection string, and confirm writes succeed. Never promote a replica with lag over 60 seconds without approval from the database on-call. After failover, rebuild the old primary as a replica and open a postmortem."
+  },
+  {
+    "id": "KB-005",
+    "title": "Runbook: search-api degraded results",
+    "service": "search-api",
+    "tags": [
+      "search",
+      "degraded",
+      "index",
+      "elasticsearch",
+      "relevance"
+    ],
+    "content": "Symptoms: search-api returns slow or partial results, or empty result pages. Check the index cluster health and whether a reindex job is running. If shards are unassigned, restart the affected data node and wait for rebalancing. Enable the cached fallback results flag to keep the site usable during recovery. Degraded search without checkout impact is usually medium severity. Escalate to the search team if the cluster stays yellow for over 20 minutes."
+  },
+  {
+    "id": "KB-006",
+    "title": "Runbook: notification-worker queue backlog",
+    "service": "notification-worker",
+    "tags": [
+      "notification",
+      "queue",
+      "backlog",
+      "worker",
+      "email",
+      "sms"
+    ],
+    "content": "Symptoms: queue depth growing, emails or SMS delayed by more than 10 minutes. Check consumer count and dead letter queue size. Scale notification-worker consumers up to 3x baseline and look for a poison message blocking a partition. Move failed messages to the dead letter queue and replay them after the fix. Third party provider throttling should be handled by lowering the send rate. Delayed notifications alone are low to medium severity."
+  },
+  {
+    "id": "KB-007",
+    "title": "Runbook: inventory-api stock mismatches",
+    "service": "inventory-api",
+    "tags": [
+      "inventory",
+      "stock",
+      "sync",
+      "mismatch",
+      "warehouse"
+    ],
+    "content": "Symptoms: product pages show wrong availability or reservations fail. Check the warehouse sync job last run time and the inventory cache TTL. Flush the stock cache for affected SKUs and trigger a manual sync. If reservations fail with timeouts, check orders-db health since reservations write there. Overselling risk raises severity to high. Document affected SKUs in the incident description."
+  },
+  {
+    "id": "KB-008",
+    "title": "Runbook: cdn-edge cache miss spike",
+    "service": "cdn-edge",
+    "tags": [
+      "cdn",
+      "cache",
+      "miss",
+      "edge",
+      "static",
+      "origin"
+    ],
+    "content": "Symptoms: cache hit ratio drops below 80 percent and origin load rises. Look for a recent purge-all or a change to cache keys and Vary headers. Restore the previous cache configuration and warm popular assets. Enable origin shield to protect origin servers during recovery. Watch checkout-web and search-api load because origin traffic spikes can degrade them. Usually low severity unless origin is saturated."
+  },
+  {
+    "id": "KB-009",
+    "title": "Severity matrix",
+    "service": null,
+    "tags": [
+      "severity",
+      "matrix",
+      "priority",
+      "critical",
+      "high",
+      "medium",
+      "low"
+    ],
+    "content": "Critical: full outage or data loss affecting checkout, payments or login for most customers; page on-call immediately. High: major feature degraded for a large segment, error rate above 5 percent, or revenue impact with no workaround. Medium: partial degradation, elevated latency, or a single non-core feature failing, with a workaround available. Low: minor defect or cosmetic issue with no customer impact, handled in business hours. When unsure between two levels choose the higher one and revisit after triage."
+  },
+  {
+    "id": "KB-010",
+    "title": "Incident creation policy",
+    "service": null,
+    "tags": [
+      "incident",
+      "policy",
+      "create",
+      "ticket",
+      "process"
+    ],
+    "content": "Create an incident only when degradation or an outage is confirmed (for example via service status) or when a user explicitly requests it. Do not create duplicates; search for an existing open incident first. The description must state customer impact, start time, affected services and the suspected cause. Choose severity using the severity matrix. Incident creation requires human approval. After creation, notify the on-call and start the status page communication."
+  },
+  {
+    "id": "KB-011",
+    "title": "On-call escalation procedure",
+    "service": null,
+    "tags": [
+      "oncall",
+      "escalation",
+      "pager",
+      "escalate",
+      "contact"
+    ],
+    "content": "Page the primary on-call for the owning team first and allow 10 minutes for acknowledgement. If there is no response, escalate to the secondary on-call, then to the engineering manager. Critical incidents page the primary and the incident commander at the same time. Include the incident id, severity, impact and links to dashboards in the page. Hand off explicitly at shift change and record the handoff in the incident timeline."
+  },
+  {
+    "id": "KB-012",
+    "title": "Deploy rollback procedure",
+    "service": null,
+    "tags": [
+      "deploy",
+      "rollback",
+      "release",
+      "revert",
+      "bad release"
+    ],
+    "content": "Roll back when error rate or latency regresses within 30 minutes of a deploy and no quick fix exists. Identify the last known good version from the release dashboard. Trigger the rollback pipeline for the service and wait for pods to become ready. Verify error rate and latency return to baseline. Freeze further deploys to the service until the root cause is understood. Record the rolled back version in the incident timeline."
+  },
+  {
+    "id": "KB-013",
+    "title": "Status page communication guide",
+    "service": null,
+    "tags": [
+      "status",
+      "page",
+      "communication",
+      "customers",
+      "update"
+    ],
+    "content": "Post an initial status page update within 15 minutes of a confirmed high or critical incident. Use plain language: what is affected, since when, and what customers should expect. Update at least every 30 minutes until resolved, even if there is no new information. Avoid blaming vendors or guessing at root cause. Post a final resolution message with the time of recovery and a link to the postmortem when available."
+  },
+  {
+    "id": "KB-014",
+    "title": "Postmortem template",
+    "service": null,
+    "tags": [
+      "postmortem",
+      "retrospective",
+      "template",
+      "rca",
+      "review"
+    ],
+    "content": "Hold a blameless postmortem within five business days of any high or critical incident. Sections: summary, customer impact, timeline in UTC, root cause, detection, what went well, what went poorly, and action items. Every action item needs an owner and a due date. Focus on system and process gaps rather than individuals. Publish the document to the engineering wiki and review action item progress weekly."
+  },
+  {
+    "id": "KB-015",
+    "title": "Latency triage checklist",
+    "service": null,
+    "tags": [
+      "latency",
+      "triage",
+      "slow",
+      "performance",
+      "checklist"
+    ],
+    "content": "Start with the golden signals: latency, traffic, errors and saturation. Compare the current p95 with the same hour yesterday to confirm a regression. Check for a recent deploy, config change or traffic spike. Inspect downstream dependencies and database query times. Mitigate by scaling out, shedding load or rolling back before hunting for the root cause."
+  },
+  {
+    "id": "KB-016",
+    "title": "Runbook: flaky upstream dependencies",
+    "service": null,
+    "tags": [
+      "retry",
+      "upstream",
+      "transient",
+      "dependency",
+      "flaky"
+    ],
+    "content": "Transient upstream errors should be retried with exponential backoff and jitter, up to three attempts. Do not retry non-idempotent operations without an idempotency key. If a dependency fails more than 50 percent of calls, open the circuit breaker and serve degraded responses. Record the dependency and failure rate in the incident description. Persistent failures need escalation to the owning team."
+  }
+]

@@ -1,0 +1,4 @@
+[
+  {"type": "tool", "name": "search_knowledge_base", "args": {"query": "runbook {service}"}},
+  {"type": "final", "text": "[Scripted demo output] Knowledge base lookup. Result: {last_tool_result}"}
+]
