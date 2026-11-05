@@ -11,7 +11,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    # Blank values (e.g. `LOG_FILE=` copied from .env.example) mean "unset", not an empty string or Path(".").
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=True)
 
     # --- LLM ---
     llm_provider: Literal["scripted", "deepseek"] = "scripted"

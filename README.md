@@ -10,7 +10,7 @@ An agent harness for an **operations assistant**. It is written from scratch in 
 
 Tools (mock implementations): `search_knowledge_base(query)`, `get_service_status(service_name)`, `create_incident(title, description, severity)`.
 
-📄 Design report: [docs/report.md](docs/report.md) · 📮 Postman: [postman/](postman/) · 🗂 Mock dataset: [data/](data/) (public copy: _Google Drive link, see report §15_)
+📄 Design report: [docs/report.md](docs/report.md) · 📮 Postman: [postman/](postman/) · 🗂 Mock dataset: [data/](data/) · ☁️ Public copy: [Google Drive](https://drive.google.com/file/d/1rxoCSOcVbbuWpIOz90-cRo0-qfzcfElJ/view?usp=sharing)
 
 ---
 

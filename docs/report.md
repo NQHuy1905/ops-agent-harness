@@ -300,4 +300,4 @@ The dataset is in the repository under `data/`. A public copy is at:
 
 `make dataset` builds `dist/mock-dataset.zip` for upload.
 
-**Google Drive:** _<add public link after upload>_
+**Google Drive:** https://drive.google.com/file/d/1rxoCSOcVbbuWpIOz90-cRo0-qfzcfElJ/view?usp=sharing
