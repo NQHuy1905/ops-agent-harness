@@ -12,7 +12,7 @@ The harness runs an operations assistant on top of an LLM. It accepts an objecti
 7. Safety controls
 8. Database design
 9. Observability
-10. Testing
+10. Testing (incl. how to run and test)
 11. API & Postman collection
 12. Environment variables
 13. Limitations
@@ -221,6 +221,36 @@ invoke_agent ops-assistant (segment=resume, approval=approve)
 
 ## 10. Testing
 
+### 10.1 How to run and test
+
+Requires Python 3.10 or newer.
+
+```bash
+# install
+make install                  # creates a venv and installs the app + dev dependencies
+cp .env.example .env          # optional; blank values mean "unset"
+
+# run (offline demo, no API key)
+make run                      # API on http://localhost:8000, OpenAPI UI at /docs
+.venv/bin/harness run "Check the status of payments-api"            # CLI
+.venv/bin/harness run "checkout-web is down, create an incident"    # prompts approve / reject / edit
+
+# real LLM (DeepSeek)
+LLM_PROVIDER=deepseek DEEPSEEK_API_KEY=... make run
+
+# test
+make test                     # offline suite, about 15 s
+make coverage                 # with coverage report
+make lint                     # ruff
+make test-live                # optional live DeepSeek smoke test (needs DEEPSEEK_API_KEY)
+npx newman run postman/ops-agent-harness.postman_collection.json \
+  -e postman/ops-agent-harness.postman_environment.json   # server must be running
+```
+
+The full command list, with API examples and Docker, is in the [README](../README.md).
+
+### 10.2 Test design
+
 `make test` runs the suite. It needs no network:
 - `ScriptedLLM` replays OpenAI-format assistant messages through the real parser.
 - Each test gets its own SQLite file.
@@ -238,14 +268,12 @@ invoke_agent ops-assistant (segment=resume, approval=approve)
 | API / tracing | all endpoints and status codes; span tree shape; error spans |
 
 **Latest results:**
-- **pytest:** 157 passed in about 18 s.
+- **pytest:** 158 passed in about 15 s.
 - **Coverage:** 94% overall; `app/core` 96–100%; `app/tools` 98–100%.
 - **Postman (Newman), against a live server in scripted mode:** 25 requests, 38 assertions, 0 failures.
 - **Docker image:** builds and starts.
 
-The live DeepSeek smoke test (`make test-live`) was not run, because no API key was available.
-
-Run with `make test`, `make coverage`, and `make test-live` (optional live DeepSeek smoke test; needs a key).
+- **Live DeepSeek (`deepseek-v4-flash`):** the smoke test passes. Manual runs covered a status check, a KB question, tool faults, approve and reject of `create_incident`, and thinking mode.
 
 ## 11. API & Postman collection
 
